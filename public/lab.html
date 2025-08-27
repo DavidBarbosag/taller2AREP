@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Form Example</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<h1>Form with GET</h1>
+<form onsubmit="event.preventDefault(); loadGetMsg();">
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name" value="John"><br><br>
+    <input type="submit" value="Submit">
+</form>
+<div id="getrespmsg"></div>
+
+<script>
+    function loadGetMsg() {
+        let nameVar = document.getElementById("name").value;
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            document.getElementById("getrespmsg").innerHTML = this.responseText;
+        }
+        xhttp.open("GET", "/App/hello");
+        xhttp.send();
+    }
+</script>
+
+<script>
+    function loadGetMsg() {
+        let nameVar = document.getElementById("name").value;
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            document.getElementById("getrespmsg").innerHTML = this.responseText;
+        }
+        xhttp.open("GET", "/App/hello?name=" + encodeURIComponent(nameVar));
+        xhttp.send();
+    }
+</script>
+
+<h1>Form with PI</h1>
+<form onsubmit="event.preventDefault(); loadPiMsg();">
+    <input type="submit" value="Obtener PI">
+</form>
+<div id="pirespmsg"></div>
+<script>
+    function loadPiMsg() {
+        const xhttp = new XMLHttpRequest();
+        xhttp.onload = function() {
+            document.getElementById("pirespmsg").innerHTML = this.responseText;
+        }
+        xhttp.open("GET", "/App/pi");
+        xhttp.send();
+    }
+</script>
+</body>
+</html>

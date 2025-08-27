@@ -17,8 +17,43 @@ import java.util.Map;
 public class SimpleHttpServer {
 
     public static final List<Task> tasks = new ArrayList<>();
+    private static final Map<String, RouteHandler> getRoutes = new HashMap<>();
+    private static String staticFilesFolder = "public";
+
+    @FunctionalInterface
+    public interface RouteHandler {
+        String handle(Request req, Response res);
+    }
+
+    public static class Request {
+        private final String path;
+        private final Map<String, String> queryParams;
+        public Request(String path, Map<String, String> queryParams) {
+            this.path = path;
+            this.queryParams = queryParams;
+        }
+        public String getPath() { return path; }
+        public String getValues(String key) { return queryParams.get(key); }
+    }
+
+    public static class Response {
+    }
+
+    public static void get(String path, RouteHandler handler) {
+        getRoutes.put(path, handler);
+    }
+
+    public static void staticfiles(String folder) {
+        staticFilesFolder = folder;
+    }
+
 
     public static void main(String[] args) {
+
+        staticfiles("/public");
+        get("/App/hello", (req, res) -> "Hello " + req.getValues("name"));
+        get("/App/pi", (req, res) -> String.valueOf(Math.PI));
+
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(35000);
@@ -54,11 +89,32 @@ public class SimpleHttpServer {
 
         String[] requestParts = requestLine.split(" ");
         String method = requestParts[0];
-        String path = requestParts[1];
+        String fullPath = requestParts[1];
 
-        if (path.startsWith("/api/tasks")) {
+
+        String path = fullPath.split("\\?")[0];
+        Map<String, String> queryParams = new HashMap<>();
+        if (fullPath.contains("?")) {
+            String query = fullPath.substring(fullPath.indexOf('?') + 1);
+            for (String param : query.split("&")) {
+                String[] kv = param.split("=");
+                if (kv.length == 2) queryParams.put(kv[0], kv[1]);
+            }
+        }
+
+        boolean handled = false;
+
+        if (method.equals("GET") && getRoutes.containsKey(path)) {
+            String body = getRoutes.get(path).handle(new Request(path, queryParams), new Response());
+            String response = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n" + body;
+            out.write(response.getBytes());
+            handled = true;
+        } else if (path.startsWith("/api/tasks")) {
             handleApiRequest(method, path, in, out);
-        } else {
+            handled = true;
+        }
+
+        if (!handled) {
             serveStaticFile(path, out);
         }
 
