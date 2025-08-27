@@ -1,10 +1,13 @@
-# Taller diseño y estructuración de aplicaciones distribuidas en internet
+# Framework Web para Servicios REST y Gestión de Archivos Estáticos
 
-Servidor HTTP mínimo en Java, sin frameworks, capaz de servir archivos estáticos y exponer una API REST sencilla para gestión de tareas.
+Framework web en Java para el desarrollo de aplicaciones con servicios REST backend y gestión de archivos estáticos.
 
-## Comenzando
+## Características Principales
 
-Estas instrucciones te permitirán obtener una copia del proyecto y ejecutarlo en tu máquina local para desarrollo y pruebas.
+* Definición de servicios REST mediante funciones lambda
+* Manejo de valores de consulta en peticiones
+* Especificación flexible de ubicación de archivos estáticos
+* Soporte para archivos HTML, JavaScript, CSS e imágenes
 
 ### Prerequisitos
 
@@ -12,7 +15,7 @@ Estas instrucciones te permitirán obtener una copia del proyecto y ejecutarlo e
 * Maven
 * Browser
 
-## Instalando
+## Instalación y Ejecución
 
 1. Clona el repositorio
    ```
@@ -60,14 +63,13 @@ http-mini-server/
 │               └── AppTest.java
 │
 ├── pom.xml                          # Archivo de configuración de Maven
-├── README.md                        # Documentación del proyecto
-└── target/                          # Archivos compilados y generados por Maven
+└── README.md                        # Documentación del proyecto
 ```
 
 ## Arquitectura
 
-Arquitectura
-El servidor HTTP está construido en Java sin frameworks externos. Su arquitectura se compone de los siguientes módulos:
+El framework está construido sobre los siguientes componentes:
+
 
 
 * Servidor principal (SimpleHttpServer.java):
