@@ -1,1 +1,3 @@
-http\AppTest.class
+http\TaskTest.class
+http\SimpleHttpServerTest.class
+http\SimpleHttpServerTest$1.class

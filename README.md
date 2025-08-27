@@ -111,6 +111,10 @@ http://localhost:35000/<ruta_del_archivo>
 
 ![Archivo estático](assets/exampleStaticFiles.png)
 
+## Análisis estático
+
+![test](assets/tests.png)
+
 
 ## Authors
 David Alfonso Barbosa Gómez
