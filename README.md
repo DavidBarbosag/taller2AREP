@@ -1,4 +1,4 @@
-# Framework Web para Servicios REST y Gestión de Archivos Estáticos
+# Framework Web para Servicios REST y Gestión de Archivos Estáticos concurrente
 
 Framework web en Java para el desarrollo de aplicaciones con servicios REST backend y gestión de archivos estáticos.
 
@@ -8,12 +8,15 @@ Framework web en Java para el desarrollo de aplicaciones con servicios REST back
 * Manejo de valores de consulta en peticiones
 * Especificación flexible de ubicación de archivos estáticos
 * Soporte para archivos HTML, JavaScript, CSS e imágenes
+* Ejecución en contenedor Docker lista para producción.
+* Guía de despliegue en AWS (EC2).
 
 ### Prerequisitos
 
 * Java 8 o superior
 * Maven
 * Browser
+* Docker
 
 ## Instalación y Ejecución
 
@@ -61,10 +64,71 @@ Framework web en Java para el desarrollo de aplicaciones con servicios REST back
    → Respuesta: 3.141592653589793
 
 
+## Ejecución con Docker
+
+Construye la imagen:
+
+docker build -t simple-http-server .
+
+
+Corre el contenedor:
+
+docker run -d -p 35000:35000 simple-http-server
+
+
+Accede desde el navegador:
+
+http://localhost:35000
+
+
+Para ver logs del servidor:
+
+docker logs <container_id>
+
+
+Para detener y eliminar contenedores en ejecución:
+
+docker ps       # Identifica el container_id
+docker rm -f <container_id>
+
+## Despliegue en AWS EC2
+
+Crea una instancia EC2 con Amazon Linux 2023.
+
+Instala Docker:
+
+sudo dnf update -y
+sudo dnf install -y docker
+sudo systemctl enable docker
+sudo systemctl start docker
+
+
+
+Abre el puerto 35000 en el Security Group de la instancia (inbound rule → Custom TCP → 35000 → 0.0.0.0/0).
+
+Clona el repositorio y construye la imagen:
+
+git clone https://github.com/DavidBarbosag/tallerDisenoEstructuracionAplicacionesInternet.git
+cd tallerDisenoEstructuracionAplicacionesInternet
+mvn clean package
+docker build -t simple-http-server .
+
+
+Ejecuta el contenedor:
+
+docker run -d -p 35000:35000 simple-http-server
+
+
+Abre en tu navegador:
+
+http://<public-ip-ec2>:35000
+
+
 ## Estructura del proyecto
 
 ```
 http-mini-server/
+├── Dockerfile  
 ├── assets/                          # Imágenes y recursos estáticos para la documentación
 │   ├── exampleStaticFiles.png
 │   ├── img.png
@@ -142,6 +206,10 @@ http://localhost:35000/<ruta_del_archivo>
 
 ![test](assets/tests.png)
 
+
+## Demostración despliegue en AWS
+
+![despliegue](assets/despliegue.png)
 
 ## Autor
 David Alfonso Barbosa Gómez
