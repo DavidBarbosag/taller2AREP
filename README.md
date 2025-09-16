@@ -33,6 +33,33 @@ Framework web en Java para el desarrollo de aplicaciones con servicios REST back
   ```
 5. Accede mediante este url http://localhost:35000.
 
+6. Uso del Microframework
+
+   El servidor implementa un microframework sencillo inspirado en frameworks web populares. Permite:
+   
+   Definir rutas GET con funciones lambda.
+   
+   ```
+   SimpleHttpServer.get("/App/hello", (req, res) -> "Hello " + req.getValues("name"));
+   SimpleHttpServer.get("/App/pi", (req, res) -> String.valueOf(Math.PI));
+   ```
+   
+   * req permite acceder a parámetros de la URL (req.getValues("name")).
+   
+   * res es un objeto de respuesta (en este caso no se usa, pero está disponible para extender).
+   
+   Ejemplo de uso en el navegador:
+   
+   http://localhost:35000/App/hello?name=David
+   
+   
+   → Respuesta: Hello David
+   
+   http://localhost:35000/App/pi
+   
+   
+   → Respuesta: 3.141592653589793
+
 
 ## Estructura del proyecto
 
@@ -116,7 +143,7 @@ http://localhost:35000/<ruta_del_archivo>
 ![test](assets/tests.png)
 
 
-## Authors
+## Autor
 David Alfonso Barbosa Gómez
 
    
