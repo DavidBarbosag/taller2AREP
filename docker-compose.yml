@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  simple-http-server:
+    image: simple-http-server:latest
+    build: .
+    ports:
+      - "35000:35000"
+    restart: always

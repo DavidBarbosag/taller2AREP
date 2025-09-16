@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>📋 Gestor de Tareas</h1>
+
+<section>
+    <h2>Agregar Tarea</h2>
+    <label for="title">Título:</label><br>
+    <input type="text" id="title" placeholder="Título de la tarea"><br><br>
+
+    <label for="description">Descripción:</label><br>
+    <input type="text" id="description" placeholder="Descripción de la tarea"><br><br>
+
+    <label for="done">Estado:</label><br>
+    <select id="done">
+        <option value="false">Pendiente</option>
+        <option value="true">Completada</option>
+    </select><br><br>
+
+    <button onclick="addTask()">Agregar</button>
+    <p id="postresp"></p>
+</section>
+
+<hr>
+
+<!-- Lista de tareas -->
+<section>
+    <h2>Lista de Tareas</h2>
+    <div id="tasks">
+        <p>Cargando tareas...</p>
+    </div>
+</section>
+
+<script src="app.js"></script>
+<script>
+    window.onload = loadTasks;
+</script>
+</body>
+</html>

@@ -36,6 +36,25 @@
   </dependencies>
 
   <build>
+
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+
+      <resource>
+        <directory>public</directory>
+        <targetPath>public</targetPath>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+    </resources>
+
+
     <plugins>
       <!-- Compilador -->
       <plugin>

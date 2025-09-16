@@ -3,22 +3,27 @@ package http;
 import java.net.*;
 import java.io.*;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
- * Servidor HTTP en Java sin frameworks.
- * - Atiende múltiples solicitudes secuenciales (no concurrentes).
- * - Sirve archivos estáticos desde la carpeta "public/".
- * - Expone una API REST simple en "/api/tasks" con GET y POST.
+ * A simple HTTP server that handles GET and POST requests, serves static files,
+ * and provides a basic routing mechanism.
+ * Routes can be defined for specific paths, and static files can be served from a designated folder.
+ * The server listens on port 35000 and can handle multiple requests concurrently.
+ * To stop the server, a shutdown hook is added to handle graceful termination.
+ *
  */
 public class SimpleHttpServer {
 
     public static final List<Task> tasks = new ArrayList<>();
     private static final Map<String, RouteHandler> getRoutes = new HashMap<>();
     private static String staticFilesFolder = "public";
+
+    private static final ExecutorService workerPool =
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+    private static volatile boolean running = true;
 
     @FunctionalInterface
     public interface RouteHandler {
@@ -36,8 +41,7 @@ public class SimpleHttpServer {
         public String getValues(String key) { return queryParams.get(key); }
     }
 
-    public static class Response {
-    }
+    public static class Response {}
 
     public static void get(String path, RouteHandler handler) {
         getRoutes.put(path, handler);
@@ -47,37 +51,40 @@ public class SimpleHttpServer {
         staticFilesFolder = folder;
     }
 
-
     public static void main(String[] args) {
-
-        staticfiles("/public");
+        staticfiles("public");
         get("/App/hello", (req, res) -> "Hello " + req.getValues("name"));
         get("/App/pi", (req, res) -> String.valueOf(Math.PI));
 
-        ServerSocket serverSocket = null;
-        try {
-            serverSocket = new ServerSocket(35000);
+        try (ServerSocket serverSocket = new ServerSocket(35000)) {
             System.out.println("Servidor iniciado en el puerto 35000");
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                running = false;
+                workerPool.shutdown();
+                System.out.println("Servidor detenido.");
+            }));
+
+            while (running) {
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    workerPool.submit(() -> {
+                        try {
+                            handleRequest(clientSocket);
+                        } catch (IOException e) {
+                            System.err.println("Error al manejar solicitud: " + e.getMessage());
+                        }
+                    });
+                } catch (SocketException e) {
+                    break;
+                }
+            }
         } catch (IOException e) {
             System.err.println("No se pudo escuchar en el puerto 35000.");
             System.exit(1);
         }
-
-        boolean running = true;
-        while (running) {
-            try (Socket clientSocket = serverSocket.accept()) {
-                handleRequest(clientSocket);
-            } catch (IOException e) {
-                System.err.println("Error al aceptar conexión: " + e.getMessage());
-            }
-        }
     }
 
-    /**
-     * Maneja una solicitud HTTP de un cliente.
-     * @param clientSocket El socket del cliente conectado.
-     * @throws IOException Si ocurre un error al leer o escribir en el socket.
-     */
     private static void handleRequest(Socket clientSocket) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         OutputStream out = clientSocket.getOutputStream();
@@ -90,7 +97,6 @@ public class SimpleHttpServer {
         String[] requestParts = requestLine.split(" ");
         String method = requestParts[0];
         String fullPath = requestParts[1];
-
 
         String path = fullPath.split("\\?")[0];
         Map<String, String> queryParams = new HashMap<>();
@@ -123,14 +129,6 @@ public class SimpleHttpServer {
         clientSocket.close();
     }
 
-    /**
-     * Maneja solicitudes API para obtener o agregar tareas (GET y POST).
-     * @param method El método HTTP (GET o POST).
-     * @param path La ruta de la solicitud (debería ser "/api/tasks").
-     * @param in El BufferedReader para leer el cuerpo de la solicitud.
-     * @param out El OutputStream para enviar la respuesta.
-     * @throws IOException Si ocurre un error al leer o escribir en el socket.
-     */
     static void handleApiRequest(String method, String path, BufferedReader in, OutputStream out) throws IOException {
         String response;
 
@@ -177,11 +175,6 @@ public class SimpleHttpServer {
         out.flush();
     }
 
-    /**
-     * Lee el cuerpo de una solicitud HTTP POST.
-     * @param in El BufferedReader para leer la solicitud.
-     * @throws IOException Si ocurre un error al leer del BufferedReader.
-     */
     private static String readRequestBody(BufferedReader in) throws IOException {
         StringBuilder body = new StringBuilder();
         int contentLength = 0;
@@ -202,10 +195,6 @@ public class SimpleHttpServer {
         return body.toString();
     }
 
-    /**
-     * Parsea un JSON muy simple en un mapa clave-valor.
-     * @param json El string JSON a parsear.
-     */
     private static Map<String, String> parseJson(String json) {
         Map<String, String> map = new HashMap<>();
         json = json.trim();
@@ -224,17 +213,10 @@ public class SimpleHttpServer {
         return map;
     }
 
-    /**
-     * Sirve archivos estáticos desde la carpeta "public/".
-     * Si el archivo no existe, devuelve un error 404.
-     * @param path La ruta del archivo solicitado.
-     * @param out El OutputStream para enviar la respuesta.
-     * @throws IOException Si ocurre un error al leer o escribir en el socket.
-     */
     private static void serveStaticFile(String path, OutputStream out) throws IOException {
-        if (path.equals("/")) path = "/index.html";
+        if (path.equals("/")) path = "/tasks.html";
 
-        File file = new File("public" + path);
+        File file = new File(staticFilesFolder + path);
         if (file.exists() && !file.isDirectory()) {
             String contentType = getContentType(path);
             byte[] fileBytes = Files.readAllBytes(file.toPath());
@@ -246,11 +228,6 @@ public class SimpleHttpServer {
         out.flush();
     }
 
-    /**
-     * Determina el tipo de contenido basado en la extensión del archivo.
-     * @param path La ruta del archivo.
-     * @return El tipo de contenido correspondiente.
-     */
     private static String getContentType(String path) {
         if (path.endsWith(".html")) return "text/html";
         if (path.endsWith(".css")) return "text/css";
